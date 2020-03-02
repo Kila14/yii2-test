@@ -1,2 +1,2 @@
 # yii2-test
-Let's learn yii2 throught small test project
+Let's learn yii2 through small test project
