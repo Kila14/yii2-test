@@ -6,13 +6,19 @@ use yii\widgets\ActiveForm;
 /* @var $this yii\web\View */
 /* @var $model app\models\Employee */
 /* @var $form yii\widgets\ActiveForm */
+/* @var $employees array */
 ?>
 
 <div class="employee-form">
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'chief_id')->textInput() ?>
+    <?php if (! empty($employees)) : ?>
+        <?= $form->field($model, 'chief_id')->dropdownList(
+            $employees,
+            ['prompt' => 'Select chief']
+        ); ?>
+    <?php endif; ?>
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
 

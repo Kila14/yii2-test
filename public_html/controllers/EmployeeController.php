@@ -8,6 +8,7 @@ use app\models\EmployeeSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
 
 /**
  * EmployeeController implements the CRUD actions for Employee model.
@@ -72,6 +73,7 @@ class EmployeeController extends Controller
 
         return $this->render('create', [
             'model' => $model,
+            'employees' => $this->getEmployees(),
         ]);
     }
 
@@ -92,6 +94,7 @@ class EmployeeController extends Controller
 
         return $this->render('update', [
             'model' => $model,
+            'employees' => $this->getEmployees($id),
         ]);
     }
 
@@ -123,5 +126,74 @@ class EmployeeController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    /**
+     * Finds the employees without current employee and his inferiors.
+     * @param integer $id
+     * @return array
+     */
+    protected function getEmployees($id = null)
+    {
+        if (! is_null($id))
+        {
+            $employee_inferiors = $this->getEmployeeInferiors($id);
+            $condition = ['not in', 'id', array_merge($employee_inferiors, [$id])];
+        }
+        else
+        {
+            $condition = [];
+        }
+
+        $employees = Employee::find()->where($condition)->asArray()->all();
+
+        if ($employees === null)
+            return [];
+
+        $employees = ArrayHelper::map(
+            $employees,
+            'id',
+            function($element)
+            {
+                return $element['name'] . ' ' . $element['surname'] . (! empty($element['position']) ? ' (' . $element['position'] . ')' : '');
+            });
+
+        return $employees;
+    }
+
+    /**
+     * Finds employee inferiors.
+     * @param integer $employee_id
+     * @return array
+     */
+    protected function getEmployeeInferiors($employee_id = null)
+    {
+        $inferiors = [];
+
+        if (is_null($employee_id))
+            return $inferiors;
+
+        $employees = Employee::find()->asArray()->all();
+
+        $handle_employees = function(& $array, $id) use(& $inferiors, & $handle_employees)
+        {
+            $inferiors_exist = false;
+            foreach ($array as $key => & $element)
+            {
+                if ($element['chief_id'] == $id)
+                {
+                    $inferiors[] = $element['id'];
+                    unset($array[$key]);
+                    $inferiors_exist = true;
+                }
+            }
+            if ($inferiors_exist)
+                foreach ($inferiors as $inferior)
+                    $handle_employees($array, $inferior);
+        };
+
+        $handle_employees($employees, $employee_id);
+
+        return $inferiors;
     }
 }
