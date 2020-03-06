@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "employee".
@@ -62,5 +63,29 @@ class Employee extends \yii\db\ActiveRecord
 
     public function getChiefFullName() {
         return $this->chief->name . ' ' . $this->chief->surname;
+    }
+
+    public function getSexName()
+    {
+        return $this->sex === 1 ? 'Man' : 'Woman';
+    }
+
+    public function getBirthdayParsed()
+    {
+        return $this->birthday ? date('d.m.Y', strtotime($this->birthday)) : '';
+    }
+
+    public function getInferiors()
+    {
+        return $this->find()->where(['chief_id' => $this->id])->asArray()->all();
+    }
+
+    public function getInferiorsString()
+    {
+        $inferiors = $this->inferiors;
+        $inferiors = ArrayHelper::getColumn($inferiors, function($inferior) {
+            return $inferior['name'] . ' ' . $inferior['surname'];
+        });
+        return implode(', ', $inferiors);
     }
 }
