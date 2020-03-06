@@ -28,6 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
             'id',
             'chief_id',
+            'chieffullname',
             'name',
             'surname',
             'position',
