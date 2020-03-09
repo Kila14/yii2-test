@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use yii\helpers\ArrayHelper;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Employee */
@@ -29,13 +30,35 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
-            'id',
-            'chief_id',
             'name',
             'surname',
             'position',
-            'birthday',
-            'sex',
+            [
+                'attribute' => 'chieffullname',
+                'value' => '<a href="/?r=employee/view&id=' . $model->chief_id . '">' . $model->chieffullname . '</a>',
+                'format' => 'html',
+            ],
+            [
+                'label' => 'Inferiors',
+                //'value' => $model->inferiorsstring,
+
+                'value' => function($model) {
+                    $inferiors = $model->inferiors;
+                    $inferiors = ArrayHelper::getColumn($inferiors, function($inferior) {
+                        return '<a href="/?r=employee/view&id=' . $inferior['id'] . '">' . $inferior['name'] . ' ' . $inferior['surname'] . '</a>';
+                    });
+                    return implode(', ', $inferiors);
+                },
+                'format' => 'html',
+            ],
+            [
+                'label' => 'Sex',
+                'value' => $model->sexname,
+            ],
+            [
+                'label' => 'Birthday',
+                'value' => $model->birthdayparsed,
+            ],
         ],
     ]) ?>
 

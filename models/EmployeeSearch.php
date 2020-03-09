@@ -11,6 +11,7 @@ use app\models\Employee;
  */
 class EmployeeSearch extends Employee
 {
+    public $chieffullname;
     /**
      * {@inheritdoc}
      */
@@ -18,7 +19,7 @@ class EmployeeSearch extends Employee
     {
         return [
             [['id', 'chief_id', 'sex'], 'integer'],
-            [['name', 'surname', 'position', 'birthday'], 'safe'],
+            [['name', 'surname', 'position', 'birthday', 'chieffullname'], 'safe'],
         ];
     }
 
@@ -48,6 +49,25 @@ class EmployeeSearch extends Employee
             'query' => $query,
         ]);
 
+        $dataProvider->setSort([
+            'attributes' => array_merge(
+                $dataProvider->getSort()->attributes,
+                [
+                    'chieffullname' =>
+                    [
+                        'asc' => ['employee2.name' => SORT_ASC, 'employee2.surname' => SORT_ASC],
+                        'desc' => ['employee2.name' => SORT_DESC, 'employee2.surname' => SORT_DESC],
+                    ]
+                ]
+            ),
+        ]);
+
+        if (! ($this->load($params) && $this->validate()))
+        {
+            $query->joinWith(['chief']);
+            return $dataProvider;
+        }
+
         $this->load($params);
 
         if (!$this->validate()) {
@@ -58,15 +78,23 @@ class EmployeeSearch extends Employee
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
-            'chief_id' => $this->chief_id,
-            'birthday' => $this->birthday,
-            'sex' => $this->sex,
+            self::tableName() . '.id' => $this->id,
+            self::tableName() . '.chief_id' => $this->chief_id,
+            self::tableName() . '.birthday' => $this->birthday,
+            self::tableName() . '.sex' => $this->sex,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'surname', $this->surname])
-            ->andFilterWhere(['like', 'position', $this->position]);
+        $query->andFilterWhere(['like', self::tableName() . '.name', $this->name])
+            ->andFilterWhere(['like', self::tableName() . '.surname', $this->surname])
+            ->andFilterWhere(['like', self::tableName() . '.position', $this->position]);
+
+        if (! empty($params['EmployeeSearch']['chieffullname']))
+        {
+            $query->joinWith(['chief' => function ($q) {
+                $q->where('employee2.name LIKE "%' . $this->chieffullname . '%"' .
+                    'OR employee2.surname LIKE "%' . $this->chieffullname . '%"');
+            }]);
+        }
 
         return $dataProvider;
     }

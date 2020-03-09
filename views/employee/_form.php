@@ -13,22 +13,31 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?php if (! empty($employees)) : ?>
-        <?= $form->field($model, 'chief_id')->dropdownList(
-            $employees,
-            ['prompt' => 'Select chief']
-        ); ?>
-    <?php endif; ?>
-
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'surname')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'position')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'birthday')->textInput() ?>
+    <?php if (! empty($employees)) : ?>
+        <?= $form->field($model, 'chief_id')->dropdownList(
+            $employees,
+            ['prompt' => 'Select chief']
+        )->label('Chief'); ?>
+    <?php endif; ?>
 
-    <?= $form->field($model, 'sex')->textInput() ?>
+    <?php if (! empty($employees)) : ?>
+        <?= $form->field($model, 'sex')->dropdownList(
+            ['1' => 'Man', '0' => 'Woman'],
+            ['prompt' => 'Select sex']
+        ); ?>
+    <?php endif; ?>
+
+    <?//= $form->field($model, 'birthday')->textInput() ?>
+
+    <?= $form->field($model, 'birthday')->textInput([
+        'type' => 'date',
+    ]) ?>
 
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
