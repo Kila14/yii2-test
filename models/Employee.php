@@ -61,8 +61,10 @@ class Employee extends \yii\db\ActiveRecord
         return $this->hasOne(self::className(), ['id' => 'chief_id'])->alias('employee2');
     }
 
-    public function getChiefFullName() {
-        return $this->chief->name . ' ' . $this->chief->surname;
+    public function getChiefFullName()
+    {
+        $chief = $this->chief;
+        return ! is_null($chief) ? $this->chief->name . ' ' . $this->chief->surname : '';
     }
 
     public function getSexName()
