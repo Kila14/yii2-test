@@ -90,4 +90,17 @@ class Employee extends \yii\db\ActiveRecord
         });
         return implode(', ', $inferiors);
     }
+
+    static function getAllModels()
+    {
+        return self::find()->indexBy('id')->all();
+    }
+
+    static function getAllModelsArray($models = null)
+    {
+        if (is_null($models))
+            $models = self::getAllModels();
+
+        return ArrayHelper::toArray($models);
+    }
 }

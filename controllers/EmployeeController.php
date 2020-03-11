@@ -86,7 +86,9 @@ class EmployeeController extends Controller
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+        $models = Employee::getAllModels();
+        $models_array = Employee::getAllModelsArray($models);
+        $model = $models[$id];
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
@@ -94,7 +96,7 @@ class EmployeeController extends Controller
 
         return $this->render('update', [
             'model' => $model,
-            'employees' => $this->getEmployees($id),
+            'employees' => $this->getEmployees($models_array, $id),
         ]);
     }
 
@@ -130,24 +132,26 @@ class EmployeeController extends Controller
 
     /**
      * Finds the employees without current employee and his inferiors.
+     * @param array $models_array
      * @param integer $id
      * @return array
      */
-    protected function getEmployees($id = null)
+    protected function getEmployees($models_array = null, $id = null)
     {
+        $models_array = $models_array ?? Employee::getAllModelsArray();
+
+        $employees = $models_array;
+
         if (! is_null($id))
         {
-            $employee_inferiors = $this->getEmployeeInferiors($id);
-            $condition = ['not in', 'id', array_merge($employee_inferiors, [$id])];
-        }
-        else
-        {
-            $condition = [];
+            $employee_inferiors = array_merge($this->getEmployeeInferiors($models_array, $id), [$id]);
+
+            $employee_inferiors = array_flip($employee_inferiors);
+
+            $employees = array_diff_key($models_array, $employee_inferiors);
         }
 
-        $employees = Employee::find()->where($condition)->asArray()->all();
-
-        if ($employees === null)
+        if (empty ($employees))
             return [];
 
         $employees = ArrayHelper::map(
@@ -163,17 +167,18 @@ class EmployeeController extends Controller
 
     /**
      * Finds employee inferiors.
+     * @param array $models_array
      * @param integer $employee_id
      * @return array
      */
-    protected function getEmployeeInferiors($employee_id = null)
+    protected function getEmployeeInferiors($models_array = null, $employee_id = null)
     {
+        $models_array = $models_array ?? Employee::getAllModelsArray();
+
         $inferiors = [];
 
         if (is_null($employee_id))
             return $inferiors;
-
-        $employees = Employee::find()->asArray()->all();
 
         $handle_employees = function(& $array, $id) use(& $inferiors, & $handle_employees)
         {
@@ -192,7 +197,7 @@ class EmployeeController extends Controller
                     $handle_employees($array, $inferior);
         };
 
-        $handle_employees($employees, $employee_id);
+        $handle_employees($models_array, $employee_id);
 
         return $inferiors;
     }
