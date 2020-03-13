@@ -73,7 +73,7 @@ class EmployeeController extends Controller
 
         return $this->render('create', [
             'model' => $model,
-            'employees' => $this->getEmployees(),
+            //'employees' => $this->getEmployees(),
         ]);
     }
 
@@ -82,13 +82,14 @@ class EmployeeController extends Controller
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionUpdate($id)
     {
-        $models = Employee::getAllModels();
-        $models_array = Employee::getAllModelsArray($models);
-        $model = $models[$id];
+        //$models = Employee::getAllModels();
+        //$models_array = Employee::getAllModelsArray($models);
+        //$model = $models[$id];
+
+        $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
@@ -96,7 +97,7 @@ class EmployeeController extends Controller
 
         return $this->render('update', [
             'model' => $model,
-            'employees' => $this->getEmployees($models_array, $id),
+            //'employees' => $this->getEmployees($models_array, $id),
         ]);
     }
 

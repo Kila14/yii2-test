@@ -82,25 +82,28 @@ class Employee extends \yii\db\ActiveRecord
         return $this->find()->where(['chief_id' => $this->id])->asArray()->all();
     }
 
-    public function getInferiorsString()
+    public function getInferiorsTree()
     {
-        $inferiors = $this->inferiors;
-        $inferiors = ArrayHelper::getColumn($inferiors, function($inferior) {
-            return $inferior['name'] . ' ' . $inferior['surname'];
-        });
-        return implode(', ', $inferiors);
-    }
+        $sql =
+            "SELECT
+                *
+            FROM
+                (SELECT
+                    *
+                FROM
+                    {{{$this->tableName()}}}
+                ORDER BY
+                    chief_id, id
+                ) chiefs_sorted,
+                (SELECT
+                    @pv := '{$this->id}'
+                ) initialisation
+                WHERE
+                    find_in_set(chief_id, @pv)
+                AND
+                    LENGTH(@pv := concat(@pv, ',', id))";
 
-    static function getAllModels()
-    {
-        return self::find()->indexBy('id')->all();
-    }
-
-    static function getAllModelsArray($models = null)
-    {
-        if (is_null($models))
-            $models = self::getAllModels();
-
-        return ArrayHelper::toArray($models);
+        return Yii::$app->db->createCommand($sql)
+            ->queryAll();
     }
 }
